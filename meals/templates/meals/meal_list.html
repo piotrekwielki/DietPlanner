@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Baza dań{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Baza dań</h1>
+        <p class="text-muted mb-0">Przeglądaj, filtruj i dodawaj własne przepisy.</p>
+    </div>
+    {% if user.is_authenticated %}
+        <a class="btn btn-success" href="{% url 'meals:meal_create' %}">Dodaj własne danie</a>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input class="form-control" type="text" name="query" placeholder="Szukaj po nazwie lub opisie" value="{{ filters.query }}">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="category">
+                    <option value="">Wszystkie kategorie</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if filters.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="diet_type">
+                    <option value="">Wszystkie typy</option>
+                    {% for key, label in diet_choices %}
+                        <option value="{{ key }}" {% if filters.diet_type == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input class="form-control" type="number" name="max_calories" placeholder="Maks. kcal" value="{{ filters.max_calories }}">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">Filtruj</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for meal in meals %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <span class="badge text-bg-light mb-2">{{ meal.category|default:"Bez kategorii" }}</span>
+                            <h2 class="h5">{{ meal.name }}</h2>
+                        </div>
+                        {% if user.is_authenticated %}
+                            <a class="btn btn-sm {% if meal.id in favorite_ids %}btn-danger{% else %}btn-outline-danger{% endif %}" href="{% url 'meals:toggle_favorite' meal.slug %}">
+                                ♥
+                            </a>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted small">{{ meal.get_diet_type_display }}</p>
+                    <p>{{ meal.description|truncatewords:18 }}</p>
+                    <div class="d-flex justify-content-between small text-muted mb-3">
+                        <span>{{ meal.calories }} kcal</span>
+                        <span>B {{ meal.protein }} / T {{ meal.fat }} / W {{ meal.carbs }}</span>
+                    </div>
+                    <a class="btn btn-outline-success w-100" href="{% url 'meals:meal_detail' meal.slug %}">Szczegóły</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-light border">Brak dań spełniających kryteria.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

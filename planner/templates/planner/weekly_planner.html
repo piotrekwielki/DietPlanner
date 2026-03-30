@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Planer tygodniowy{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Planer tygodniowy</h1>
+        <p class="text-muted mb-0">Tydzień od {{ week_start|date:"d.m.Y" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-success" href="?week_start={{ prev_week|date:'Y-m-d' }}">Poprzedni tydzień</a>
+        <a class="btn btn-success" href="?week_start={{ next_week|date:'Y-m-d' }}">Następny tydzień</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    {% for day in week_days %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h2 class="h5 mb-0">{{ day.date|date:"l" }}</h2>
+                            <small class="text-muted">{{ day.date|date:"d.m.Y" }}</small>
+                        </div>
+                        <span class="badge text-bg-light">{{ day.totals.calories }} kcal</span>
+                    </div>
+                    {% if day.plan and day.plan.planned_meals.all %}
+                        <ul class="list-unstyled small">
+                            {% for item in day.plan.planned_meals.all|slice:":4" %}
+                                <li class="mb-1">{{ item.get_meal_time_display }}: {{ item.meal.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted small">Brak zaplanowanych posiłków.</p>
+                    {% endif %}
+                    <a class="btn btn-outline-success w-100" href="{% url 'planner:day_detail' day.date|date:'Y-m-d' %}">Otwórz dzień</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Skopiuj jadłospis</h2>
+                <form method="post" action="{% url 'planner:copy_day_plan' %}">
+                    {% csrf_token %}
+                    {{ copy_form.as_p }}
+                    <button class="btn btn-success" type="submit">Kopiuj</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Zastosuj szablon jadłospisu</h2>
+                <form method="post" action="{% url 'planner:apply_template' %}">
+                    {% csrf_token %}
+                    {{ template_form.as_p }}
+                    <button class="btn btn-success" type="submit">Zastosuj</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

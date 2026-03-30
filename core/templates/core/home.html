@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Diet Planner | Strona główna{% endblock %}
+
+{% block content %}
+<section class="hero-card p-5 rounded-4 text-white">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <span class="badge bg-light text-success mb-3">Projekt Django + Bootstrap</span>
+            <h1 class="display-5 fw-bold">Planuj dietę, licz kalorie i generuj listy zakupów w jednym miejscu.</h1>
+            <p class="lead mt-3">
+                Aplikacja wspiera tygodniowe planowanie posiłków, limity kalorii, makroskładniki,
+                historię postępów i moduł BMI dla każdego użytkownika osobno.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <a class="btn btn-light btn-lg" href="{% url 'users:register' %}">Załóż konto</a>
+                <a class="btn btn-outline-light btn-lg" href="{% url 'meals:meal_list' %}">Zobacz bazę dań</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="glass-panel p-4 rounded-4">
+                <h3 class="h5 fw-bold">Co potrafi aplikacja?</h3>
+                <ul class="list-unstyled mt-3 mb-0">
+                    <li class="mb-2">Kontrola kalorii i makroskładników</li>
+                    <li class="mb-2">Tygodniowy planer posiłków</li>
+                    <li class="mb-2">Lista zakupów z wielu dni</li>
+                    <li class="mb-2">Ulubione i własne dania</li>
+                    <li class="mb-2">Wykresy kalorii, wagi i BMI</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

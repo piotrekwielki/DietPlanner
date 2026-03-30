@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Dashboard użytkownika</h1>
+        <p class="text-muted mb-0">Podsumowanie dnia {{ today|date:"d.m.Y" }}</p>
+    </div>
+    <a class="btn btn-success" href="{% url 'planner:day_detail' today|date:'Y-m-d' %}">Dodaj posiłek na dziś</a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Kalorie dzisiaj</p>
+                <h3 class="fw-bold">{{ totals.calories }}</h3>
+                <p class="mb-0 small">Limit: {{ profile.daily_calorie_limit }} kcal</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Pozostało</p>
+                <h3 class="fw-bold {% if totals.calories > profile.daily_calorie_limit %}text-danger{% else %}text-success{% endif %}">
+                    {{ remaining }}
+                </h3>
+                <p class="mb-0 small">Do wykorzystania dziś</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Aktualne BMI</p>
+                <h3 class="fw-bold">{{ latest_bmi.bmi|default:profile.bmi }}</h3>
+                <p class="mb-0 small">TDEE: {{ profile.tdee }} kcal</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Makroskładniki</p>
+                <h6 class="mb-1">B: {{ totals.protein }} g</h6>
+                <h6 class="mb-1">T: {{ totals.fat }} g</h6>
+                <h6 class="mb-0">W: {{ totals.carbs }} g</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if totals.calories > profile.daily_calorie_limit %}
+    <div class="alert alert-danger">Dzisiejszy limit kalorii został przekroczony.</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Kalorie z ostatnich 7 dni</h2>
+                    <a class="btn btn-outline-success btn-sm" href="{% url 'planner:weekly_planner' %}">Otwórz planer</a>
+                </div>
+                <canvas id="caloriesChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ulubione dania</h2>
+                {% for item in favorites %}
+                    <a class="d-block text-decoration-none mb-2" href="{% url 'meals:meal_detail' item.meal.slug %}">
+                        {{ item.meal.name }}
+                    </a>
+                {% empty %}
+                    <p class="text-muted mb-0">Brak ulubionych dań.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ostatnio dodane posiłki</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Dzień</th>
+                                <th>Posiłek</th>
+                                <th>Porcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_meals %}
+                                <tr>
+                                    <td>{{ item.daily_plan.date|date:"d.m.Y" }}</td>
+                                    <td>{{ item.meal.name }}</td>
+                                    <td>{{ item.servings }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="3" class="text-muted">Brak historii posiłków.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Szybkie działania</h2>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-success" href="{% url 'meals:meal_create' %}">Dodaj własne danie</a>
+                    <a class="btn btn-outline-success" href="{% url 'shopping:shopping_list' %}">Generuj listę zakupów</a>
+                    <a class="btn btn-outline-success" href="{% url 'health:bmi_calculator' %}">Przejdź do BMI</a>
+                    <a class="btn btn-outline-success" href="{% url 'users:profile' %}">Edytuj profil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ctx = document.getElementById('caloriesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Kalorie',
+                    data: {{ chart_values|safe }},
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.15)',
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+{% endblock %}

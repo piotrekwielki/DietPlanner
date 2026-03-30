@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}BMI i zdrowie{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h1 class="h3 mb-3">Kalkulator BMI</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ bmi_form.as_p }}
+                    <button class="btn btn-success" type="submit">Oblicz</button>
+                </form>
+                {% if result %}
+                    <div class="mt-4 p-3 rounded-3 bg-light">
+                        <p class="mb-1">BMI: <strong>{{ result.bmi }}</strong></p>
+                        <p class="mb-1">BMR: <strong>{{ result.bmr }}</strong></p>
+                        <p class="mb-0">TDEE: <strong>{{ result.tdee }}</strong></p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Zapisz wagę</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_weight">
+                    {{ entry_form.as_p }}
+                    <button class="btn btn-outline-success" type="submit">Zapisz wpis</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Historia BMI</h2>
+                <canvas id="bmiChart" height="130"></canvas>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ostatnie wpisy</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Waga</th>
+                                <th>BMI</th>
+                                <th>TDEE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                                <tr>
+                                    <td>{{ record.date|date:"d.m.Y" }}</td>
+                                    <td>{{ record.weight_kg }}</td>
+                                    <td>{{ record.bmi }}</td>
+                                    <td>{{ record.tdee }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-muted">Brak historii BMI.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const bmiCtx = document.getElementById('bmiChart');
+    if (bmiCtx) {
+        new Chart(bmiCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'BMI',
+                    data: {{ chart_values|safe }},
+                    backgroundColor: '#20c997'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+{% endblock %}

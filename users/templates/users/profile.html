@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Profil użytkownika{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-3">Profil użytkownika</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    <h2 class="h5 mt-2">Dane konta</h2>
+                    {{ user_form.as_p }}
+                    <h2 class="h5 mt-4">Parametry dietetyczne</h2>
+                    {{ profile_form.as_p }}
+                    <button class="btn btn-success" type="submit">Zapisz zmiany</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5">Szybkie podsumowanie</h2>
+                <p class="mb-2">BMI: <strong>{{ request.user.profile.bmi }}</strong></p>
+                <p class="mb-2">BMR: <strong>{{ request.user.profile.bmr }}</strong></p>
+                <p class="mb-0">TDEE: <strong>{{ request.user.profile.tdee }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

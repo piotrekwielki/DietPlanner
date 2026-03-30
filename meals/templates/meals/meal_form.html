@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Dodaj danie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-9">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4">Dodaj własne danie</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <h2 class="h5 mt-4">Składniki</h2>
+                    {{ formset.management_form }}
+                    <div class="row g-3">
+                        {% for ingredient_form in formset %}
+                            <div class="col-md-4">
+                                <div class="border rounded-3 p-3 bg-light-subtle h-100">
+                                    {{ ingredient_form.as_p }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="btn btn-success mt-4" type="submit">Zapisz danie</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Lista zakupów{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h1 class="h3 mb-3">Generuj listę zakupów</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="btn btn-success" type="submit">Generuj</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">Aktualna lista</h2>
+                        {% if shopping_list %}
+                            <p class="text-muted mb-0">{{ shopping_list.name }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if shopping_list %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Produkt</th>
+                                    <th>Kategoria</th>
+                                    <th>Ilość</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in shopping_list.items.all %}
+                                    <tr class="{% if item.is_checked %}table-success{% endif %}">
+                                        <td>
+                                            <a class="btn btn-sm btn-outline-success" href="{% url 'shopping:toggle_item' item.id %}">
+                                                {% if item.is_checked %}✓{% else %}○{% endif %}
+                                            </a>
+                                        </td>
+                                        <td>{{ item.ingredient_name }}</td>
+                                        <td>{{ item.get_category_display|default:item.category }}</td>
+                                        <td>{{ item.total_quantity }} {{ item.unit }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-muted">Brak elementów na liście.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Nie wygenerowano jeszcze listy zakupów.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Wylogowano{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <h1 class="h3">Zostałeś wylogowany.</h1>
+        <a class="btn btn-success mt-3" href="{% url 'login' %}">Zaloguj ponownie</a>
+    </div>
+</div>
+{% endblock %}

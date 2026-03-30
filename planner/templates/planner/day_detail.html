@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Plan dnia{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Plan dnia</h1>
+        <p class="text-muted mb-0">{{ selected_date|date:"l, d.m.Y" }}</p>
+    </div>
+    <a class="btn btn-outline-success" href="{% url 'planner:weekly_planner' %}">Wróć do tygodnia</a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><small class="text-muted">Kalorie</small><h3>{{ totals.calories }}</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><small class="text-muted">Białko</small><h3>{{ totals.protein }}</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><small class="text-muted">Tłuszcze</small><h3>{{ totals.fat }}</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><small class="text-muted">Pozostało</small><h3>{{ remaining }}</h3></div></div></div>
+</div>
+
+{% if totals.calories > profile.daily_calorie_limit %}
+    <div class="alert alert-danger">Przekroczono dzienny limit kalorii ustawiony w profilu.</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Zaplanowane posiłki</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Pora</th>
+                                <th>Danie</th>
+                                <th>Porcje</th>
+                                <th>Kcal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in planned_meals %}
+                                <tr>
+                                    <td>{{ item.get_meal_time_display }}</td>
+                                    <td>{{ item.meal.name }}</td>
+                                    <td>{{ item.servings }}</td>
+                                    <td>{{ item.total_calories }}</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-outline-danger" href="{% url 'planner:remove_planned_meal' item.id %}">Usuń</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-muted">Brak posiłków w tym dniu.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Dodaj posiłek</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="btn btn-success" type="submit">Dodaj do planu</button>
+                </form>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Propozycje w limicie</h2>
+                {% for suggestion in suggestions %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <a href="{% url 'meals:meal_detail' suggestion.slug %}">{{ suggestion.name }}</a>
+                        <span class="small text-muted">{{ suggestion.calories }} kcal</span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">Brak propozycji w pozostałym limicie.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
