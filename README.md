@@ -30,6 +30,35 @@ Do uruchomienia projektu w czystym srodowisku potrzebujesz:
 
 Najbezpieczniej uzyc Python 3.12.
 
+## Najlatwiejszy start na Windows
+
+Z katalogu projektu uruchom po prostu:
+
+```powershell
+.\start_project.bat
+```
+
+albo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start_project.ps1
+```
+
+Skrypt:
+
+- utworzy `.venv`, jesli go nie ma
+- zainstaluje zaleznosci, jesli brakuje Django
+- wykona `migrate`
+- zaladuje `seed_data` przy pierwszym starcie
+- odpali serwer Django w osobnym oknie
+- otworzy aplikacje pod `http://127.0.0.1:8000/`
+
+Jesli chcesz uruchomic serwer w tym samym terminalu, uzyj:
+
+```powershell
+.\start_project.ps1 -Foreground
+```
+
 ## Uruchomienie w czystym srodowisku
 
 Wszystkie polecenia ponizej wykonuj z katalogu projektu:
