@@ -51,12 +51,18 @@ Skrypt:
 - wykona `migrate`
 - zaladuje `seed_data` przy pierwszym starcie
 - odpali serwer Django w osobnym oknie
-- otworzy aplikacje pod `http://127.0.0.1:8000/`
+- otworzy aplikacje pod `http://127.0.0.1:8010/`
 
 Jesli chcesz uruchomic serwer w tym samym terminalu, uzyj:
 
 ```powershell
 .\start_project.ps1 -Foreground
+```
+
+Jesli port `8010` jest zajety, wybierz inny:
+
+```powershell
+.\start_project.ps1 -Port 8020
 ```
 
 ## Uruchomienie w czystym srodowisku
@@ -150,13 +156,13 @@ python manage.py seed_data
 ### 8. Uruchom serwer developerski
 
 ```powershell
-python manage.py runserver
+python manage.py runserver 127.0.0.1:8010
 ```
 
 ### 9. Otworz aplikacje w przegladarce
 
 ```text
-http://127.0.0.1:8000/
+http://127.0.0.1:8010/
 ```
 
 ## Konta testowe
@@ -178,7 +184,7 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 python manage.py seed_data
-python manage.py runserver
+python manage.py runserver 127.0.0.1:8010
 ```
 
 ## Struktura katalogow
@@ -227,7 +233,7 @@ diet_project/
 Uzyj pelnej sciezki do interpretera, np.:
 
 ```powershell
-C:\Users\piotr\AppData\Local\Programs\Python\Python312\python.exe manage.py runserver
+C:\Users\piotr\AppData\Local\Programs\Python\Python312\python.exe manage.py runserver 127.0.0.1:8010
 ```
 
 ### Brak aktywnego `.venv`

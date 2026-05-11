@@ -2,7 +2,10 @@
 param(
     [switch]$Foreground,
     [switch]$NoBrowser,
-    [switch]$SetupOnly
+    [switch]$SetupOnly,
+    [ValidateRange(1, 65535)]
+    [int]$Port = 8010,
+    [string]$BindAddress = "127.0.0.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -13,7 +16,8 @@ $venvDir = Join-Path $projectRoot ".venv"
 $venvPython = Join-Path $venvDir "Scripts\python.exe"
 $managePy = Join-Path $projectRoot "manage.py"
 $requirementsFile = Join-Path $projectRoot "requirements.txt"
-$projectUrl = "http://127.0.0.1:8000/"
+$serverAddress = "${BindAddress}:$Port"
+$projectUrl = "http://${serverAddress}/"
 
 function Write-Step {
     param([string]$Message)
@@ -135,17 +139,17 @@ if (Test-ServerAvailable) {
 }
 
 if ($Foreground) {
-    Write-Step "Startuje serwer w tym oknie"
+    Write-Step "Startuje serwer w tym oknie pod $projectUrl"
     if (-not $NoBrowser) {
         Start-Process $projectUrl
     }
 
-    Invoke-Manage -Arguments @("runserver")
+    Invoke-Manage -Arguments @("runserver", $serverAddress)
     return
 }
 
-Write-Step "Startuje serwer w osobnym oknie"
-$serverCommand = "& '$venvPython' '$managePy' runserver"
+Write-Step "Startuje serwer w osobnym oknie pod $projectUrl"
+$serverCommand = "& '$venvPython' '$managePy' runserver '$serverAddress'"
 Start-Process -FilePath "powershell.exe" -WorkingDirectory $projectRoot -ArgumentList @(
     "-NoExit",
     "-Command",

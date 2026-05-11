@@ -14,6 +14,20 @@
     </div>
 </div>
 
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="h5 mb-1">Automatyczny jadlospis</h2>
+            <p class="text-muted mb-0">Generator uzywa limitow z profilu i preferowanych pór posilkow.</p>
+        </div>
+        <form method="post" action="{% url 'planner:generate_week_plan' %}">
+            {% csrf_token %}
+            <input type="hidden" name="week_start" value="{{ week_start|date:'Y-m-d' }}">
+            <button class="btn btn-success" type="submit">Wygeneruj tydzien</button>
+        </form>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     {% for day in week_days %}
         <div class="col-md-6 col-xl-4">

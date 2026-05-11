@@ -1,33 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Baza dań{% endblock %}
+{% block title %}Baza dan{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
-        <h1 class="h2 mb-1">Baza dań</h1>
-        <p class="text-muted mb-0">Przeglądaj, filtruj i dodawaj własne przepisy.</p>
+        <h1 class="h2 mb-1">Baza dan</h1>
+        <p class="text-muted mb-0">Przegladaj, filtruj i dodawaj wlasne przepisy.</p>
     </div>
     {% if user.is_authenticated %}
-        <a class="btn btn-success" href="{% url 'meals:meal_create' %}">Dodaj własne danie</a>
+        <a class="btn btn-success" href="{% url 'meals:meal_create' %}">Dodaj wlasne danie</a>
     {% endif %}
 </div>
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
         <form method="get" class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <input class="form-control" type="text" name="query" placeholder="Szukaj po nazwie lub opisie" value="{{ filters.query }}">
             </div>
-            <div class="col-md-2">
-                <select class="form-select" name="category">
-                    <option value="">Wszystkie kategorie</option>
-                    {% for category in categories %}
-                        <option value="{{ category.id }}" {% if filters.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <select class="form-select" name="diet_type">
                     <option value="">Wszystkie typy</option>
                     {% for key, label in diet_choices %}
@@ -52,7 +44,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start gap-2">
                         <div>
-                            <span class="badge text-bg-light mb-2">{{ meal.category|default:"Bez kategorii" }}</span>
+                            <span class="badge text-bg-light mb-2">{{ meal.preferred_meal_time_display }}</span>
                             <h2 class="h5">{{ meal.name }}</h2>
                         </div>
                         {% if user.is_authenticated %}
@@ -67,13 +59,13 @@
                         <span>{{ meal.calories }} kcal</span>
                         <span>B {{ meal.protein }} / T {{ meal.fat }} / W {{ meal.carbs }}</span>
                     </div>
-                    <a class="btn btn-outline-success w-100" href="{% url 'meals:meal_detail' meal.slug %}">Szczegóły</a>
+                    <a class="btn btn-outline-success w-100" href="{% url 'meals:meal_detail' meal.slug %}">Szczegoly</a>
                 </div>
             </div>
         </div>
     {% empty %}
         <div class="col-12">
-            <div class="alert alert-light border">Brak dań spełniających kryteria.</div>
+            <div class="alert alert-light border">Brak dan spelniajacych kryteria.</div>
         </div>
     {% endfor %}
 </div>

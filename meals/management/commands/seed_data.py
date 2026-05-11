@@ -1,12 +1,12 @@
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from meals.models import Ingredient, Meal, MealCategory, MealIngredient
+from meals.models import Ingredient, Meal, MealIngredient
 from planner.models import PlanTemplate, PlanTemplateMeal
 
 
 class Command(BaseCommand):
-    help = "Tworzy przykładowe dane startowe dla aplikacji dietetycznej."
+    help = "Tworzy przykladowe dane startowe dla aplikacji dietetycznej."
 
     def handle(self, *args, **options):
         admin, created = User.objects.get_or_create(
@@ -25,31 +25,27 @@ class Command(BaseCommand):
             user.set_password("demo12345")
             user.save()
 
-        breakfast = MealCategory.objects.get_or_create(name="Śniadanie")[0]
-        lunch = MealCategory.objects.get_or_create(name="Obiad")[0]
-        dinner = MealCategory.objects.get_or_create(name="Kolacja")[0]
-
-        oats = Ingredient.objects.get_or_create(name="Płatki owsiane", defaults={"category": "grains"})[0]
+        oats = Ingredient.objects.get_or_create(name="Platki owsiane", defaults={"category": "grains"})[0]
         milk = Ingredient.objects.get_or_create(name="Mleko", defaults={"category": "dairy", "default_unit": "ml"})[0]
         banana = Ingredient.objects.get_or_create(name="Banan", defaults={"category": "fruit", "default_unit": "szt."})[0]
-        chicken = Ingredient.objects.get_or_create(name="Pierś z kurczaka", defaults={"category": "meat"})[0]
-        rice = Ingredient.objects.get_or_create(name="Ryż", defaults={"category": "dry"})[0]
-        broccoli = Ingredient.objects.get_or_create(name="Brokuł", defaults={"category": "vegetables"})[0]
-        bread = Ingredient.objects.get_or_create(name="Chleb pełnoziarnisty", defaults={"category": "grains"})[0]
+        chicken = Ingredient.objects.get_or_create(name="Piers z kurczaka", defaults={"category": "meat"})[0]
+        rice = Ingredient.objects.get_or_create(name="Ryz", defaults={"category": "dry"})[0]
+        broccoli = Ingredient.objects.get_or_create(name="Brokul", defaults={"category": "vegetables"})[0]
+        bread = Ingredient.objects.get_or_create(name="Chleb pelnoziarnisty", defaults={"category": "grains"})[0]
         cottage = Ingredient.objects.get_or_create(name="Serek wiejski", defaults={"category": "dairy"})[0]
         tomato = Ingredient.objects.get_or_create(name="Pomidor", defaults={"category": "vegetables"})[0]
 
         porridge, _ = Meal.objects.get_or_create(
             name="Owsianka z bananem",
             defaults={
-                "description": "Szybkie śniadanie z płatków owsianych, mleka i banana.",
-                "category": breakfast,
+                "description": "Szybkie sniadanie z platkow owsianych, mleka i banana.",
                 "calories": 420,
                 "protein": 16,
                 "fat": 9,
                 "carbs": 68,
                 "servings": 2,
                 "diet_type": "vegetarian",
+                "preferred_meal_time": "breakfast",
                 "created_by": admin,
                 "is_public": True,
                 "is_approved": True,
@@ -60,16 +56,16 @@ class Command(BaseCommand):
         MealIngredient.objects.get_or_create(meal=porridge, ingredient=banana, defaults={"quantity": 2, "unit": "szt."})
 
         chicken_rice, _ = Meal.objects.get_or_create(
-            name="Kurczak z ryżem i brokułem",
+            name="Kurczak z ryzem i brokulem",
             defaults={
-                "description": "Klasyczny obiad wysokobiałkowy.",
-                "category": lunch,
+                "description": "Klasyczny obiad wysokobialkowy.",
                 "calories": 610,
                 "protein": 45,
                 "fat": 14,
                 "carbs": 72,
                 "servings": 2,
                 "diet_type": "standard",
+                "preferred_meal_time": "dinner",
                 "created_by": admin,
                 "is_public": True,
                 "is_approved": True,
@@ -82,14 +78,14 @@ class Command(BaseCommand):
         sandwiches, _ = Meal.objects.get_or_create(
             name="Kanapki z serkiem i pomidorem",
             defaults={
-                "description": "Lekka kolacja z pieczywem pełnoziarnistym.",
-                "category": dinner,
+                "description": "Lekka kolacja z pieczywem pelnoziarnistym.",
                 "calories": 350,
                 "protein": 21,
                 "fat": 9,
                 "carbs": 42,
                 "servings": 2,
                 "diet_type": "vegetarian",
+                "preferred_meal_time": "supper",
                 "created_by": admin,
                 "is_public": True,
                 "is_approved": True,
@@ -102,7 +98,7 @@ class Command(BaseCommand):
         template, _ = PlanTemplate.objects.get_or_create(
             name="Szablon 2000 kcal",
             defaults={
-                "description": "Przykładowy jednodniowy jadłospis o umiarkowanej kaloryczności.",
+                "description": "Przykladowy jednodniowy jadlospis o umiarkowanej kalorycznosci.",
                 "calorie_target": 2000,
                 "is_public": True,
                 "created_by": admin,
@@ -112,4 +108,4 @@ class Command(BaseCommand):
         PlanTemplateMeal.objects.get_or_create(template=template, meal=chicken_rice, meal_time="dinner", defaults={"servings": 1})
         PlanTemplateMeal.objects.get_or_create(template=template, meal=sandwiches, meal_time="supper", defaults={"servings": 1})
 
-        self.stdout.write(self.style.SUCCESS("Dane startowe zostały utworzone."))
+        self.stdout.write(self.style.SUCCESS("Dane startowe zostaly utworzone."))

@@ -47,3 +47,22 @@ class UserProfile(models.Model):
             self.activity_level, 1.55
         )
         return round(self.bmr * multiplier, 2)
+
+    def calculate_nutrition_targets(self):
+        goal_multiplier = {
+            "cut": 0.85,
+            "maintain": 1,
+            "bulk": 1.1,
+        }.get(self.goal, 1)
+
+        calories = max(round(self.tdee * goal_multiplier), 1)
+        protein = max(round(float(self.weight_kg) * 1.8), 1)
+        fat = max(round((calories * 0.25) / 9), 1)
+        carbs = max(round((calories - protein * 4 - fat * 9) / 4), 1)
+
+        return {
+            "daily_calorie_limit": calories,
+            "daily_protein_limit": protein,
+            "daily_fat_limit": fat,
+            "daily_carbs_limit": carbs,
+        }

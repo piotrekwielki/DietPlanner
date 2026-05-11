@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import MealForm, MealIngredientFormSet
-from .models import FavoriteMeal, Meal, MealCategory
+from .models import FavoriteMeal, Meal
 
 
 def visible_meals(user):
@@ -15,18 +15,14 @@ def visible_meals(user):
 
 
 def meal_list(request):
-    meals = visible_meals(request.user).select_related("category", "created_by")
-    categories = MealCategory.objects.all()
+    meals = visible_meals(request.user).select_related("created_by")
 
     query = request.GET.get("query", "").strip()
-    category = request.GET.get("category", "").strip()
     diet_type = request.GET.get("diet_type", "").strip()
     max_calories = request.GET.get("max_calories", "").strip()
 
     if query:
         meals = meals.filter(Q(name__icontains=query) | Q(description__icontains=query))
-    if category:
-        meals = meals.filter(category_id=category)
     if diet_type:
         meals = meals.filter(diet_type=diet_type)
     if max_calories:
@@ -45,11 +41,9 @@ def meal_list(request):
         "meals/meal_list.html",
         {
             "meals": meals,
-            "categories": categories,
             "favorite_ids": favorite_ids,
             "filters": {
                 "query": query,
-                "category": category,
                 "diet_type": diet_type,
                 "max_calories": max_calories,
             },
@@ -93,6 +87,30 @@ def meal_create(request):
         formset = MealIngredientFormSet()
 
     return render(request, "meals/meal_form.html", {"form": form, "formset": formset})
+
+
+@login_required
+def meal_edit(request, slug):
+    meal = get_object_or_404(visible_meals(request.user), slug=slug)
+
+    if request.method == "POST":
+        form = MealForm(request.POST, instance=meal)
+        formset = MealIngredientFormSet(request.POST, instance=meal)
+        if form.is_valid() and formset.is_valid():
+            meal = form.save(commit=False)
+            meal.save()
+            formset.save()
+            messages.success(request, "Danie zostało zaktualizowane.")
+            return redirect("meals:meal_detail", slug=meal.slug)
+    else:
+        form = MealForm(instance=meal)
+        formset = MealIngredientFormSet(instance=meal)
+
+    return render(
+        request,
+        "meals/meal_form.html",
+        {"form": form, "formset": formset, "meal": meal, "is_edit": True},
+    )
 
 
 @login_required

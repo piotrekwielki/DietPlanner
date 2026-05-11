@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Dodaj danie{% endblock %}
+{% block title %}{% if is_edit %}Edytuj danie{% else %}Dodaj danie{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-xl-9">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <h1 class="h3 mb-4">Dodaj własne danie</h1>
+                <h1 class="h3 mb-4">{% if is_edit %}Edytuj danie{% else %}Dodaj wlasne danie{% endif %}</h1>
                 <form method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <h2 class="h5 mt-4">Składniki</h2>
+                    <h2 class="h5 mt-4">Skladniki</h2>
                     {{ formset.management_form }}
                     <div class="row g-3">
                         {% for ingredient_form in formset %}
@@ -23,6 +23,9 @@
                         {% endfor %}
                     </div>
                     <button class="btn btn-success mt-4" type="submit">Zapisz danie</button>
+                    {% if is_edit %}
+                        <a class="btn btn-outline-secondary mt-4 ms-2" href="{% url 'meals:meal_detail' meal.slug %}">Anuluj</a>
+                    {% endif %}
                 </form>
             </div>
         </div>

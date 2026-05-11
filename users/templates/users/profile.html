@@ -31,3 +31,98 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    (() => {
+        const fields = {
+            age: document.getElementById("id_age"),
+            height: document.getElementById("id_height_cm"),
+            weight: document.getElementById("id_weight_kg"),
+            activity: document.getElementById("id_activity_level"),
+            goal: document.getElementById("id_goal"),
+            calories: document.getElementById("id_daily_calorie_limit"),
+            protein: document.getElementById("id_daily_protein_limit"),
+            fat: document.getElementById("id_daily_fat_limit"),
+            carbs: document.getElementById("id_daily_carbs_limit"),
+        };
+
+        if (Object.values(fields).some((field) => !field)) {
+            return;
+        }
+
+        const manuallyEditedTargets = new Set();
+        const targetFields = [fields.calories, fields.protein, fields.fat, fields.carbs];
+        const sourceFields = [fields.age, fields.height, fields.weight, fields.activity, fields.goal];
+
+        const toNumber = (field) => Number.parseFloat(String(field.value).replace(",", "."));
+        const roundAtLeastOne = (value) => Math.max(Math.round(value), 1);
+
+        const calculateTargets = () => {
+            const age = toNumber(fields.age);
+            const height = toNumber(fields.height);
+            const weight = toNumber(fields.weight);
+
+            if (!age || !height || !weight) {
+                return null;
+            }
+
+            const activityMultiplier = {
+                low: 1.2,
+                moderate: 1.55,
+                high: 1.725,
+            }[fields.activity.value] || 1.55;
+
+            const goalMultiplier = {
+                cut: 0.85,
+                maintain: 1,
+                bulk: 1.1,
+            }[fields.goal.value] || 1;
+
+            const bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            const calories = roundAtLeastOne(bmr * activityMultiplier * goalMultiplier);
+            const protein = roundAtLeastOne(weight * 1.8);
+            const fat = roundAtLeastOne((calories * 0.25) / 9);
+            const carbs = roundAtLeastOne((calories - protein * 4 - fat * 9) / 4);
+
+            return { calories, protein, fat, carbs };
+        };
+
+        const updateTargets = () => {
+            const targets = calculateTargets();
+            if (!targets) {
+                return;
+            }
+
+            Object.entries({
+                calories: fields.calories,
+                protein: fields.protein,
+                fat: fields.fat,
+                carbs: fields.carbs,
+            }).forEach(([name, field]) => {
+                if (!manuallyEditedTargets.has(name)) {
+                    field.value = targets[name];
+                }
+            });
+        };
+
+        const targetNames = new Map([
+            [fields.calories, "calories"],
+            [fields.protein, "protein"],
+            [fields.fat, "fat"],
+            [fields.carbs, "carbs"],
+        ]);
+
+        targetFields.forEach((field) => {
+            field.addEventListener("input", () => {
+                manuallyEditedTargets.add(targetNames.get(field));
+            });
+        });
+
+        sourceFields.forEach((field) => {
+            field.addEventListener("input", updateTargets);
+            field.addEventListener("change", updateTargets);
+        });
+    })();
+</script>
+{% endblock %}

@@ -3,23 +3,6 @@ from django.db import models
 from django.utils.text import slugify
 
 
-class MealCategory(models.Model):
-    name = models.CharField(max_length=120, unique=True)
-    slug = models.SlugField(max_length=140, unique=True, blank=True)
-
-    class Meta:
-        verbose_name_plural = "Meal categories"
-        ordering = ["name"]
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-
 class Ingredient(models.Model):
     CATEGORY_CHOICES = [
         ("vegetables", "Warzywa"),
@@ -43,6 +26,14 @@ class Ingredient(models.Model):
 
 
 class Meal(models.Model):
+    PREFERRED_MEAL_TIME_CHOICES = [
+        ("any", "Dowolna pora"),
+        ("breakfast", "Śniadanie"),
+        ("lunch", "Lunch"),
+        ("dinner", "Obiad"),
+        ("snack", "Przekąska"),
+        ("supper", "Kolacja"),
+    ]
     DIET_CHOICES = [
         ("standard", "Standard"),
         ("vegetarian", "Wegetariańskie"),
@@ -54,15 +45,15 @@ class Meal(models.Model):
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=180, unique=True, blank=True)
     description = models.TextField()
-    category = models.ForeignKey(
-        MealCategory, on_delete=models.SET_NULL, null=True, related_name="meals"
-    )
     calories = models.DecimalField(max_digits=7, decimal_places=2, help_text="Na 1 porcję")
     protein = models.DecimalField(max_digits=7, decimal_places=2, help_text="Na 1 porcję")
     fat = models.DecimalField(max_digits=7, decimal_places=2, help_text="Na 1 porcję")
     carbs = models.DecimalField(max_digits=7, decimal_places=2, help_text="Na 1 porcję")
     servings = models.PositiveIntegerField(default=1, help_text="Liczba porcji w przepisie")
     diet_type = models.CharField(max_length=20, choices=DIET_CHOICES, default="standard")
+    preferred_meal_time = models.CharField(
+        max_length=120, default="any", help_text="Mozesz wybrac kilka por posilku."
+    )
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_meals"
     )
@@ -81,6 +72,18 @@ class Meal(models.Model):
 
     def __str__(self):
         return self.name
+
+    def preferred_meal_time_values(self):
+        values = [value for value in self.preferred_meal_time.split(",") if value]
+        return values or ["any"]
+
+    def matches_meal_time(self, meal_time):
+        values = self.preferred_meal_time_values()
+        return "any" in values or meal_time in values
+
+    def preferred_meal_time_display(self):
+        labels = dict(self.PREFERRED_MEAL_TIME_CHOICES)
+        return ", ".join(labels.get(value, value) for value in self.preferred_meal_time_values())
 
 
 class MealIngredient(models.Model):

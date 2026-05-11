@@ -1,15 +1,80 @@
+import random
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from meals.models import Meal
 
 from .forms import CopyDayForm, PlannedMealForm, TemplateApplyForm
 from .models import DailyPlan, PlannedMeal, PlanTemplateMeal
+
+
+MEAL_TIME_TARGETS = [
+    ("breakfast", Decimal("0.25")),
+    ("lunch", Decimal("0.15")),
+    ("dinner", Decimal("0.35")),
+    ("snack", Decimal("0.10")),
+    ("supper", Decimal("0.15")),
+]
+
+
+def visible_meals_for_user(user):
+    return Meal.objects.filter(Q(is_public=True, is_approved=True) | Q(created_by=user))
+
+
+def serving_options():
+    return [Decimal(value) / Decimal("4") for value in range(2, 9)]
+
+
+def score_meal(meal, meal_time, servings, targets, used_meal_ids):
+    calories = meal.calories * servings
+    protein = meal.protein * servings
+    fat = meal.fat * servings
+    carbs = meal.carbs * servings
+
+    score = (
+        abs(calories - targets["calories"]) / max(targets["calories"], Decimal("1"))
+        + abs(protein - targets["protein"]) / max(targets["protein"], Decimal("1"))
+        + abs(fat - targets["fat"]) / max(targets["fat"], Decimal("1"))
+        + abs(carbs - targets["carbs"]) / max(targets["carbs"], Decimal("1"))
+    )
+
+    if not meal.matches_meal_time(meal_time):
+        score += Decimal("0.75")
+    if meal.id in used_meal_ids:
+        score += Decimal("0.20")
+    return score
+
+
+def choose_meal_for_slot(meals, meal_time, slot_share, profile, used_meal_ids):
+    targets = {
+        "calories": Decimal(profile.daily_calorie_limit) * slot_share,
+        "protein": Decimal(profile.daily_protein_limit) * slot_share,
+        "fat": Decimal(profile.daily_fat_limit) * slot_share,
+        "carbs": Decimal(profile.daily_carbs_limit) * slot_share,
+    }
+    preferred = [meal for meal in meals if meal.matches_meal_time(meal_time)]
+    candidates = preferred or meals
+
+    scored_options = []
+    for meal in candidates:
+        for servings in serving_options():
+            score = score_meal(meal, meal_time, servings, targets, used_meal_ids)
+            scored_options.append((score, meal, servings))
+
+    if not scored_options:
+        return None, Decimal("1")
+
+    scored_options.sort(key=lambda option: option[0])
+    shortlist_size = min(5, len(scored_options))
+    _, meal, servings = random.choice(scored_options[:shortlist_size])
+    return meal, servings
 
 
 @login_required
@@ -65,7 +130,7 @@ def day_detail(request, day):
     totals = daily_plan.calculate_totals()
     profile = request.user.profile
     remaining = max(profile.daily_calorie_limit - totals["calories"], 0)
-    suggestions = Meal.objects.filter(Q(is_public=True, is_approved=True) | Q(created_by=request.user))
+    suggestions = visible_meals_for_user(request.user)
     if remaining > 0:
         suggestions = suggestions.filter(calories__lte=remaining)
 
@@ -111,6 +176,49 @@ def copy_day_plan(request):
                 )
             messages.success(request, "Plan dnia został skopiowany.")
     return redirect("planner:weekly_planner")
+
+
+@login_required
+def generate_week_plan(request):
+    if request.method != "POST":
+        return redirect("planner:weekly_planner")
+
+    week_start_param = request.POST.get("week_start")
+    if week_start_param:
+        week_start = datetime.strptime(week_start_param, "%Y-%m-%d").date()
+    else:
+        today = timezone.localdate()
+        week_start = today - timedelta(days=today.weekday())
+
+    meals = list(visible_meals_for_user(request.user).order_by("name"))
+    planner_url = f"{reverse('planner:weekly_planner')}?week_start={week_start.isoformat()}"
+    if not meals:
+        messages.error(request, "Dodaj najpierw dania, aby wygenerowaÄ‡ jadÅ‚ospis.")
+        return redirect(planner_url)
+
+    profile = request.user.profile
+    used_meal_ids = set()
+    for index in range(7):
+        day = week_start + timedelta(days=index)
+        daily_plan, _ = DailyPlan.objects.get_or_create(user=request.user, date=day)
+        daily_plan.planned_meals.all().delete()
+
+        for meal_time, slot_share in MEAL_TIME_TARGETS:
+            meal, servings = choose_meal_for_slot(
+                meals, meal_time, slot_share, profile, used_meal_ids
+            )
+            if meal is None:
+                continue
+            PlannedMeal.objects.create(
+                daily_plan=daily_plan,
+                meal=meal,
+                meal_time=meal_time,
+                servings=servings,
+            )
+            used_meal_ids.add(meal.id)
+
+    messages.success(request, "Tygodniowy jadłospis został wygenerowany.")
+    return redirect(planner_url)
 
 
 @login_required

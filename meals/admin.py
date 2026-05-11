@@ -1,17 +1,11 @@
 from django.contrib import admin
 
-from .models import FavoriteMeal, Ingredient, Meal, MealCategory, MealIngredient
+from .models import FavoriteMeal, Ingredient, Meal, MealIngredient
 
 
 class MealIngredientInline(admin.TabularInline):
     model = MealIngredient
     extra = 1
-
-
-@admin.register(MealCategory)
-class MealCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")
-    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Ingredient)
@@ -23,8 +17,15 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Meal)
 class MealAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "diet_type", "calories", "is_public", "is_approved")
-    list_filter = ("category", "diet_type", "is_public", "is_approved")
+    list_display = (
+        "name",
+        "diet_type",
+        "preferred_meal_time",
+        "calories",
+        "is_public",
+        "is_approved",
+    )
+    list_filter = ("diet_type", "preferred_meal_time", "is_public", "is_approved")
     search_fields = ("name", "description")
     inlines = [MealIngredientInline]
 
