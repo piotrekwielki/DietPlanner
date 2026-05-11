@@ -79,13 +79,18 @@
     const bmiCtx = document.getElementById('bmiChart');
     if (bmiCtx) {
         new Chart(bmiCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: {{ chart_labels|safe }},
                 datasets: [{
                     label: 'BMI',
                     data: {{ chart_values|safe }},
-                    backgroundColor: '#20c997'
+                    borderColor: '#20c997',
+                    backgroundColor: '#20c997',
+                    pointBackgroundColor: '#20c997',
+                    pointBorderColor: '#198754',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 }]
             },
             options: {
