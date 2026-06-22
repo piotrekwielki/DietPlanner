@@ -26,7 +26,7 @@ Do uruchomienia projektu w czystym srodowisku potrzebujesz:
 - Windows, Linux albo macOS
 - Python 3.11 lub nowszy
 - `pip`
-- terminal, np. PowerShell
+- terminal, np. PowerShell, Bash albo Zsh
 
 Najbezpieczniej uzyc Python 3.12.
 
@@ -65,23 +65,71 @@ Jesli port `8010` jest zajety, wybierz inny:
 .\start_project.ps1 -Port 8020
 ```
 
-## Uruchomienie w czystym srodowisku
+## Najlatwiejszy start na Linux/macOS
+
+Z katalogu projektu uruchom:
+
+```bash
+chmod +x ./start_project.sh
+./start_project.sh
+```
+
+Mozesz tez uruchomic skrypt bez nadawania uprawnien wykonywania:
+
+```bash
+bash ./start_project.sh
+```
+
+Skrypt:
+
+- utworzy `.venv`, jesli go nie ma
+- zainstaluje zaleznosci, jesli brakuje Django
+- wykona `migrate`
+- zaladuje `seed_data` przy pierwszym starcie
+- uruchomi serwer Django pod `http://127.0.0.1:8010/`
+- sprobuje otworzyc aplikacje w przegladarce przez `xdg-open` albo `open`
+
+Jesli chcesz tylko przygotowac srodowisko bez startu serwera:
+
+```bash
+./start_project.sh --setup-only
+```
+
+Jesli port `8010` jest zajety, wybierz inny:
+
+```bash
+./start_project.sh --port 8020
+```
+
+Jesli nie chcesz automatycznego otwierania przegladarki:
+
+```bash
+./start_project.sh --no-browser
+```
+
+## Uruchomienie reczne w czystym srodowisku
 
 Wszystkie polecenia ponizej wykonuj z katalogu projektu:
 
-```powershell
-cd C:\Users\piotr\Desktop\ZZPO_Dieta\diet_project
+```bash
+cd /sciezka/do/DietPlanner
 ```
 
 ### 1. Sprawdz, czy Python dziala
 
-```powershell
+```bash
 python --version
 ```
 
-Jesli komenda `python` nie dziala, a Python jest zainstalowany, sprobuj:
+Na Linux/macOS komenda moze nazywac sie `python3`:
 
-```powershell
+```bash
+python3 --version
+```
+
+Na Windows mozesz tez uzyc launchera `py`:
+
+```bash
 py --version
 ```
 
@@ -95,8 +143,14 @@ C:\Users\piotr\AppData\Local\Programs\Python\Python312\python.exe --version
 
 Jesli `python` dziala:
 
-```powershell
+```bash
 python -m venv .venv
+```
+
+Na Linux/macOS czesto bedzie to:
+
+```bash
+python3 -m venv .venv
 ```
 
 Jesli nie, a dziala pelna sciezka:
@@ -122,21 +176,27 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
 ### 4. Zainstaluj zaleznosci
 
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
 ### 5. Wygeneruj migracje
 
-```powershell
+```bash
 python manage.py makemigrations
 ```
 
 ### 6. Zastosuj migracje do bazy
 
-```powershell
+```bash
 python manage.py migrate
 ```
 
@@ -149,13 +209,13 @@ Ta komenda doda:
 - przykladowe dania
 - przykladowy szablon jadlospisu
 
-```powershell
+```bash
 python manage.py seed_data
 ```
 
 ### 8. Uruchom serwer developerski
 
-```powershell
+```bash
 python manage.py runserver 127.0.0.1:8010
 ```
 
@@ -174,14 +234,26 @@ Po wykonaniu `python manage.py seed_data` dostepne beda:
 
 ## Jak uruchomic projekt od zera - szybka wersja
 
-Jesli wszystko dziala poprawnie, wystarczy:
+Windows:
 
 ```powershell
-cd C:\Users\piotr\Desktop\ZZPO_Dieta\diet_project
+cd C:\sciezka\do\DietPlanner
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python manage.py makemigrations
+python manage.py migrate
+python manage.py seed_data
+python manage.py runserver 127.0.0.1:8010
+```
+
+Linux/macOS:
+
+```bash
+cd /sciezka/do/DietPlanner
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_data
 python manage.py runserver 127.0.0.1:8010
@@ -194,7 +266,9 @@ diet_project/
 |-- manage.py
 |-- requirements.txt
 |-- README.md
-|-- db.sqlite3
+|-- start_project.bat
+|-- start_project.ps1
+|-- start_project.sh
 |-- diet_project/
 |   |-- settings.py
 |   |-- urls.py
@@ -209,6 +283,8 @@ diet_project/
 |-- templates/
 `-- static/
 ```
+
+Pliki takie jak `.venv/`, `db.sqlite3`, `staticfiles/`, `media/`, logi i cache Pythona sa lokalne i nie powinny trafic do repozytorium.
 
 ## Co robi aplikacja
 

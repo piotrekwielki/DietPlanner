@@ -177,7 +177,7 @@ def copy_day_plan(request):
             messages.success(request, "Plan dnia został skopiowany.")
     return redirect("planner:weekly_planner")
 
-
+#TODO limit kalorii nie jest brany pod uwage
 @login_required
 def generate_week_plan(request):
     if request.method != "POST":
